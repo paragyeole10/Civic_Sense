@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicAI - Intelligent Civic Issue Reporting & Resolution System</title>
+    <meta name="description" content="AI-Powered Crowdsourced Civic Issue Reporting and Municipal Dashboard. Powered by YOLOv11, DistilBERT, and CLIP.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-brand">
+            <i class="fa-solid fa-city brand-icon"></i>
+            <div>
+                <h1>CivicAI</h1>
+                <p>Smart India Hackathon 2026 • AI-Powered Municipal Operations</p>
+            </div>
+        </div>
+        <div class="system-status">
+            <span class="status-indicator online"></span>
+            <span>FastAPI Server Connected</span>
+        </div>
+    </header>
+
+    <main class="workspace-container">
+        
+        <!-- ================= CITIZEN PHONE SIMULATOR (LEFT) ================= -->
+        <section class="pane-column citizen-pane">
+            <div class="pane-title">
+                <h2>Citizen Mobile App</h2>
+                <span class="badge">React Native iOS Mockup</span>
+            </div>
+            
+            <div class="phone-wrapper">
+                <div class="phone-bezel">
+                    <!-- Notch -->
+                    <div class="phone-notch"></div>
+                    <!-- Screen Container -->
+                    <div class="phone-screen">
+                        
+                        <!-- Mobile Header -->
+                        <div class="phone-header">
+                            <div class="header-logo">
+                                <i class="fa-solid fa-landmark"></i>
+                                <span>CivicAI</span>
+                            </div>
+                            <div class="header-user-avatar" id="btn-mobile-chat">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                        </div>
+
+                        <!-- Mobile Screen Content Area -->
+                        <div class="phone-content">
+
+                            <!-- SCREEN 1: HOME -->
+                            <div id="screen-home" class="mobile-screen active">
+                                <div class="welcome-box">
+                                    <div class="welcome-text">
+                                        <h3>Namaste, Arjun</h3>
+                                        <p>Your civic contributions are making a difference today.</p>
+                                    </div>
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100&h=100" alt="Arjun Avatar" class="user-avatar-img">
+                                </div>
+
+                                <div class="quick-stats-grid">
+                                    <div class="stat-card blue">
+                                        <div class="stat-header">
+                                            <span>TOTAL REPORTS</span>
+                                            <i class="fa-solid fa-file-invoice"></i>
+                                        </div>
+                                        <span class="stat-value" id="mobile-stat-total">12</span>
+                                    </div>
+                                    <div class="stat-card amber">
+                                        <div class="stat-header">
+                                            <span>ACTIVE</span>
+                                            <i class="fa-solid fa-calendar-check"></i>
+                                        </div>
+                                        <span class="stat-value" id="mobile-stat-active">3</span>
+                                    </div>
+                                    <div class="stat-card green">
+                                        <div class="stat-header">
+                                            <span>RESOLVED</span>
+                                            <i class="fa-solid fa-circle-check"></i>
+                                        </div>
+                                        <span class="stat-value" id="mobile-stat-resolved">9</span>
+                                    </div>
+                                    <div class="stat-card purple">
+                                        <div class="stat-header">
+                                            <span>IMPACT SCORE</span>
+                                            <i class="fa-solid fa-award"></i>
+                                        </div>
+                                        <span class="stat-value" id="mobile-stat-impact">108</span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Cards -->
+                                <button class="action-btn-banner" id="btn-report-banner">
+                                    <div class="banner-text">
+                                        <h4>Report Issue</h4>
+                                        <p>Help improve your neighborhood</p>
+                                    </div>
+                                    <i class="fa-solid fa-circle-plus banner-icon"></i>
+                                </button>
+
+                                <div class="action-grid">
+                                    <button class="grid-action-btn" id="btn-mobile-map">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                        <span>Nearby Issues</span>
+                                    </button>
+                                    <button class="grid-action-btn" id="btn-mobile-my-complaints">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                        <span>My Complaints</span>
+                                    </button>
+                                </div>
+
+                                <button class="action-btn-banner assistant-banner" id="btn-ask-assistant">
+                                    <div class="banner-text">
+                                        <h4><i class="fa-solid fa-robot banner-inline-icon"></i> Ask CivicAI</h4>
+                                        <p>Query policies or get help reporting</p>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right banner-icon"></i>
+                                </button>
+
+                                <div class="recent-activity-section">
+                                    <div class="section-title-row">
+                                        <h4>Recent Activity</h4>
+                                        <a href="#" class="view-all-link" id="btn-mobile-view-all">View All</a>
+                                    </div>
+                                    <div class="activity-list" id="mobile-recent-list">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SCREEN 2: REPORT COMPLAINT -->
+                            <div id="screen-report" class="mobile-screen">
+                                <div class="screen-title-bar">
+                                    <button class="back-btn" id="btn-report-back"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <h3>New Complaint</h3>
+                                </div>
+
+                                <form id="mobile-report-form" class="mobile-form">
+                                    <div class="form-group">
+                                        <label>Upload Photo <span class="required">*</span></label>
+                                        <div class="image-upload-wrapper" id="image-dropzone">
+                                            <input type="file" id="mobile-file-input" accept="image/*" style="display: none;">
+                                            <div class="upload-placeholder" id="upload-placeholder">
+                                                <i class="fa-solid fa-camera"></i>
+                                                <p>Tap to upload or take a photo</p>
+                                                <span class="small-hint">Or click to select a sample image below</span>
+                                            </div>
+                                            <img id="upload-preview" class="upload-preview" alt="Preview" style="display: none;">
+                                        </div>
+                                        
+                                        <!-- Quick Samples to Test YOLO classification -->
+                                        <div class="sample-images-row">
+                                            <button type="button" class="btn-sample-img" data-img="pothole.jpg">
+                                                <i class="fa-solid fa-road"></i> Pothole
+                                            </button>
+                                            <button type="button" class="btn-sample-img" data-img="garbage.jpg">
+                                                <i class="fa-solid fa-trash"></i> Garbage
+                                            </button>
+                                            <button type="button" class="btn-sample-img" data-img="streetlight.jpg">
+                                                <i class="fa-solid fa-lightbulb"></i> Streetlight
+                                            </button>
+                                            <button type="button" class="btn-sample-img" data-img="leakage.jpg">
+                                                <i class="fa-solid fa-faucet-drip"></i> Water Leak
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Complaint Description <span class="required">*</span></label>
+                                        <textarea id="mobile-description" placeholder="Describe the issue... e.g. Large pothole near the Market Square creating accident risk" rows="3" required></textarea>
+                                        
+                                        <!-- Voice Notes Simulation -->
+                                        <div class="voice-note-bar">
+                                            <button type="button" class="btn-voice-mic" id="btn-voice-recorder">
+                                                <i class="fa-solid fa-microphone"></i>
+                                            </button>
+                                            <div class="voice-status-text" id="voice-status-text">Tap mic to record voice note</div>
+                                            <div class="wave-visualizer" id="wave-visualizer" style="display: none;">
+                                                <span class="bar"></span>
+                                                <span class="bar"></span>
+                                                <span class="bar"></span>
+                                                <span class="bar"></span>
+                                                <span class="bar"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                            <label>Confirm Geo-Location <span class="required">*</span></label>
+                                            <button type="button" id="btn-fetch-location" style="background: none; border: none; color: #2563eb; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fa-solid fa-location-crosshairs"></i> Locate Me
+                                            </button>
+                                        </div>
+                                        <p class="small-hint mb-5">Drag marker, click on the map, or tap "Locate Me" above</p>
+                                        <div id="mobile-mini-map" class="mini-map-container"></div>
+                                        <div class="latlng-indicator">
+                                            <span>Lat: <strong id="val-lat">28.4595</strong></span>
+                                            <span>Lng: <strong id="val-lng">77.0266</strong></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- AI Processing Visual Card Overlay -->
+                                    <div class="ai-processing-status-card" id="ai-analyzing-card" style="display: none;">
+                                        <div class="ai-header">
+                                            <i class="fa-solid fa-brain fa-spin"></i>
+                                            <h5>CivicAI Engine Processing...</h5>
+                                        </div>
+                                        <div class="ai-steps">
+                                            <div class="ai-step" id="step-yolo"><span class="bullet"></span> YOLOv11 Image Classify</div>
+                                            <div class="ai-step" id="step-bert"><span class="bullet"></span> DistilBERT NLP Analysis</div>
+                                            <div class="ai-step" id="step-clip"><span class="bullet"></span> CLIP Duplication Scan</div>
+                                            <div class="ai-step" id="step-xgboost"><span class="bullet"></span> XGBoost Severity Prediction</div>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="submit-complaint-btn" id="btn-submit-complaint">
+                                        <i class="fa-solid fa-paper-plane"></i> File Complaint
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- SCREEN 3: MAP VIEW -->
+                            <div id="screen-map" class="mobile-screen">
+                                <div class="screen-title-bar">
+                                    <button class="back-btn" id="btn-map-back"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <h3>Nearby Grievances</h3>
+                                </div>
+                                <div id="mobile-full-map" class="mobile-map-body"></div>
+                            </div>
+
+                            <!-- SCREEN 4: CHATBOT -->
+                            <div id="screen-chat" class="mobile-screen">
+                                <div class="screen-title-bar">
+                                    <button class="back-btn" id="btn-chat-back"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <h3>Ask CivicAI Bot</h3>
+                                </div>
+                                <div class="chat-body" id="chat-messages-container">
+                                    <div class="chat-bubble bot">
+                                        <p>Namaste! I am CivicAI assistant. How can I help you report issues or query local municipal guidelines today?</p>
+                                        <span class="chat-time">Just now</span>
+                                    </div>
+                                </div>
+                                <div class="chat-input-row">
+                                    <input type="text" id="chat-input-text" placeholder="Type a message... e.g. status of my pothole">
+                                    <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- SCREEN: NOTIFICATIONS -->
+                            <div id="screen-notifications" class="mobile-screen">
+                                <div class="screen-title-bar">
+                                    <button class="back-btn" id="btn-notifications-back"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <h3>Notifications</h3>
+                                </div>
+                                <div class="notification-list" id="mobile-notifications-list">
+                                    <div class="notification-item">
+                                        <div class="notif-icon info-icon"><i class="fa-solid fa-circle-info"></i></div>
+                                        <div class="notif-content">
+                                            <p class="notif-text">Welcome to CivicAI! Start reporting local issues to earn impact points.</p>
+                                            <span class="notif-time">Just now</span>
+                                        </div>
+                                    </div>
+                                    <div class="notification-item">
+                                        <div class="notif-icon alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                        <div class="notif-content">
+                                            <p class="notif-text">General Alert: Streetlight repair completed in Vasant Kunj Block C.</p>
+                                            <span class="notif-time">2 hours ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SCREEN: PROFILE -->
+                            <div id="screen-profile" class="mobile-screen">
+                                <div class="screen-title-bar">
+                                    <button class="back-btn" id="btn-profile-back"><i class="fa-solid fa-arrow-left"></i></button>
+                                    <h3>My Profile</h3>
+                                </div>
+                                <div class="profile-card">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120&h=120" alt="Arjun" class="profile-large-avatar">
+                                    <h4>Arjun Sharma</h4>
+                                    <p class="profile-email">arjun@gmail.com</p>
+                                    <p class="profile-phone">+91 9876543210</p>
+                                    <span class="role-badge">Verified Citizen</span>
+                                </div>
+                                <div class="profile-section-title">
+                                    <h4>My Reported Grievances</h4>
+                                </div>
+                                <div class="activity-list scrollable" id="mobile-my-complaints-list" style="max-height: 280px; overflow-y: auto;">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Mobile Footer Navigation -->
+                        <div class="phone-footer-nav">
+                            <button class="nav-item active" data-target="screen-home">
+                                <i class="fa-solid fa-house"></i>
+                                <span>Home</span>
+                            </button>
+                            <button class="nav-item" data-target="screen-map">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>Map</span>
+                            </button>
+                            <button class="nav-item center-btn" data-target="screen-report">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button class="nav-item" data-target="screen-notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span>Notifications</span>
+                            </button>
+                            <button class="nav-item" data-target="screen-profile">
+                                <i class="fa-solid fa-user"></i>
+                                <span>Profile</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MUNICIPAL PORTAL (RIGHT) ================= -->
+        <section class="pane-column dashboard-pane">
+            <div class="pane-title flex-title">
+                <h2>Municipal Command & Analytics Center</h2>
+                <div class="admin-profile">
+                    <span>Officer Portal</span>
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+            </div>
+
+            <!-- Dashboard Analytics Ribbon -->
+            <div class="dashboard-stats-grid">
+                <div class="dashboard-stat-card">
+                    <span class="d-label">Total Complaints</span>
+                    <h3 id="stat-total-complaints">152</h3>
+                    <span class="d-subtext"><i class="fa-solid fa-arrow-trend-up"></i> +12% this week</span>
+                </div>
+                <div class="dashboard-stat-card">
+                    <span class="d-label">Active Tickets</span>
+                    <h3 id="stat-active-complaints" class="amber-text">43</h3>
+                    <span class="d-subtext">Needs routing attention</span>
+                </div>
+                <div class="dashboard-stat-card">
+                    <span class="d-label">Resolved Issues</span>
+                    <h3 id="stat-resolved-complaints" class="green-text">109</h3>
+                    <span class="d-subtext">SLA Compliant</span>
+                </div>
+                <div class="dashboard-stat-card">
+                    <span class="d-label">Avg Resolution Time</span>
+                    <h3 id="stat-avg-resolution">24.5 hrs</h3>
+                    <span class="d-subtext">Target: 48.0 hrs</span>
+                </div>
+                <div class="dashboard-stat-card">
+                    <span class="d-label">SLA Compliance Rate</span>
+                    <h3 id="stat-sla-rate">88.5%</h3>
+                    <span class="d-subtext"><i class="fa-solid fa-circle-check"></i> High performance</span>
+                </div>
+            </div>
+
+            <div class="dashboard-split-workspace">
+                <!-- GIS map section -->
+                <div class="dashboard-panel map-panel">
+                    <div class="panel-header">
+                        <h4><i class="fa-solid fa-earth-americas"></i> City GIS Hotspot Map</h4>
+                        <div class="map-legends">
+                            <span class="legend"><span class="legend-dot pwd"></span> PWD</span>
+                            <span class="legend"><span class="legend-dot sanitation"></span> Sanitation</span>
+                            <span class="legend"><span class="legend-dot electrical"></span> Electrical</span>
+                            <span class="legend"><span class="legend-dot water"></span> Water</span>
+                        </div>
+                    </div>
+                    <div id="dashboard-gis-map" class="dashboard-map-container"></div>
+                </div>
+
+                <!-- Live Audit Logs / AI Inspection card -->
+                <div class="dashboard-panel ai-audit-panel">
+                    <div class="panel-header">
+                        <h4><i class="fa-solid fa-brain"></i> Real-time AI Inspection Audit</h4>
+                    </div>
+                    <div class="ai-audit-logs-container" id="ai-audit-logs">
+                        <!-- AI engine outputs pop in here in real-time -->
+                        <div class="empty-audit-state">
+                            <i class="fa-solid fa-satellite-dish"></i>
+                            <p>Awaiting complaint submission to trace AI decisions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaint List Grid -->
+            <div class="dashboard-panel table-panel">
+                <div class="panel-header table-header-controls">
+                    <h4><i class="fa-solid fa-list-check"></i> Grievance Registry & Dispatch Console</h4>
+                    
+                    <div class="filter-controls-row">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="table-search" placeholder="Search complaints...">
+                        </div>
+                        <select id="filter-type">
+                            <option value="">All Categories</option>
+                            <option value="Pothole">Pothole</option>
+                            <option value="Garbage">Garbage</option>
+                            <option value="Broken Streetlight">Broken Streetlight</option>
+                            <option value="Water Leakage">Water Leakage</option>
+                            <option value="Open Manhole">Open Manhole</option>
+                        </select>
+                        <select id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Verified">Verified</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                        <button class="btn-refresh" id="btn-refresh-dashboard"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
+                </div>
+
+                <div class="table-scroll-wrapper">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Issue Info</th>
+                                <th>Location & Coordinates</th>
+                                <th>AI Severity</th>
+                                <th>Assigned Dept</th>
+                                <th>Status</th>
+                                <th>Upvotes</th>
+                                <th>Action Console</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-complaints-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Analytics Charts Panel -->
+            <div class="dashboard-panel charts-panel">
+                <div class="panel-header">
+                    <h4><i class="fa-solid fa-chart-pie"></i> Executive Analytics Dashboard</h4>
+                </div>
+                <div class="charts-row">
+                    <div class="chart-wrapper-canvas">
+                        <h5>Complaints by Category</h5>
+                        <canvas id="chart-categories"></canvas>
+                    </div>
+                    <div class="chart-wrapper-canvas">
+                        <h5>Departmental Workload & Distribution</h5>
+                        <canvas id="chart-departments"></canvas>
+                    </div>
+                    <div class="chart-wrapper-canvas">
+                        <h5>Resolution Funnel</h5>
+                        <canvas id="chart-funnel"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+    </main>
+
+    <!-- Modal for Detailed Ticket Auditing -->
+    <div id="modal-ticket-detail" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Ticket Audit Log & Timeline: <span id="modal-ticket-id">#CIV-204</span></h3>
+                <button class="modal-close-btn" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body-split">
+                <div class="modal-details-left">
+                    <div class="modal-image-box">
+                        <img id="modal-image" src="" alt="Complaint Image">
+                        <!-- Simulated YOLO bounding boxes -->
+                        <div id="yolo-bounding-boxes-container" class="yolo-bounding-boxes"></div>
+                    </div>
+                    
+                    <div class="modal-info-grid">
+                        <div class="info-group">
+                            <label>Category</label>
+                            <span id="modal-category" class="info-val">Pothole</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Severity Score</label>
+                            <span id="modal-severity-score" class="info-val">84 / 100</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Latitude</label>
+                            <span id="modal-lat" class="info-val">28.4595</span>
+                        </div>
+                        <div class="info-group">
+                            <label>Longitude</label>
+                            <span id="modal-lng" class="info-val">77.0266</span>
+                        </div>
+                    </div>
+
+                    <div class="info-group flex-group mt-15">
+                        <label>AI Description Analysis</label>
+                        <p id="modal-description" class="description-text">Large pothole near Ranchi Bus Stand causing major vehicle traffic slowdowns and unsafe conditions.</p>
+                    </div>
+                </div>
+
+                <div class="modal-timeline-right">
+                    <h4>Resolution History Timeline</h4>
+                    <div class="timeline-trail" id="modal-timeline-list">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Update Action Form -->
+                    <form id="modal-update-form" class="modal-update-form">
+                        <h5>Disposal & Dispatch Control</h5>
+                        <div class="form-row">
+                            <div class="input-col">
+                                <label>Action/Status</label>
+                                <select id="modal-update-status" required>
+                                    <option value="Verified">Verify Complaint</option>
+                                    <option value="In Progress">Assign / Work In Progress</option>
+                                    <option value="Resolved">Resolve Grievance</option>
+                                </select>
+                            </div>
+                            <div class="input-col">
+                                <label>Dispatch Route</label>
+                                <select id="modal-update-dept">
+                                    <option value="PWD">PWD</option>
+                                    <option value="Sanitation">Sanitation</option>
+                                    <option value="Electrical">Electrical</option>
+                                    <option value="Water Department">Water Department</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group mt-10">
+                            <label>Audit Comments</label>
+                            <textarea id="modal-update-comments" placeholder="Add resolution notes, dispatch codes, or field notes..." rows="2" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-modal-update"><i class="fa-solid fa-save"></i> Save Audit Log</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS Map Script Reference -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- ChartJS Reference -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
