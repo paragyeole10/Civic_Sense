@@ -503,8 +503,14 @@ function initFormHandlers() {
     const placeholder = document.getElementById("upload-placeholder");
     
     dropzone.addEventListener("click", (e) => {
-        e.preventDefault();
-        fileInput.click();
+        if (e.target !== fileInput) {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+
+    fileInput.addEventListener("click", (e) => {
+        e.stopPropagation();
     });
     
     fileInput.addEventListener("change", (e) => {
@@ -653,7 +659,7 @@ function initFormHandlers() {
             formData.append("image", fileInput.files[0]);
         } else if (selectedSampleImg) {
             // Mock files when selecting quick samples
-            formData.append("image", new File([""], selectedSampleImg));
+            formData.append("image", new File([""], `mock_${selectedSampleImg}`));
         }
 
         try {
@@ -794,8 +800,8 @@ async function openTicketDetailModal(ticketId) {
         
         if (c.images && c.images.length > 0) {
             const imgUrl = c.images[0].image_url;
-            if (imgUrl.includes("/uploads/mock_")) {
-                // Seed mock images
+            if (imgUrl.includes("mock_")) {
+                // Seed or sample mock images
                 img.src = `https://images.unsplash.com/photo-${getMockUnsplashId(imgUrl)}?auto=format&fit=crop&q=80&w=600&h=400`;
             } else {
                 img.src = `${API_BASE}${imgUrl}`;
