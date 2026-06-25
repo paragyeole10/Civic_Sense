@@ -22,6 +22,11 @@ let charts = {
 let currentMapMarker = null; // Marker on the report mini-map
 let selectedSampleImg = null;
 
+// Map Filter States
+let activeMobileMapFilter = "All";
+let activeDashboardMapFilter = "All";
+
+
 // Speech-to-Text Transcripts Mock (Whisper)
 const sampleTranscripts = [
     "Severe pothole near Sector 14, Main Road Near Temple causing major vehicle traffic slowdowns and unsafe conditions.",
@@ -35,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initNavigation();
     initMaps();
     initFormHandlers();
+    initMapFilters(); // Initialize interactive map filters
     initChatbot();
     
     // Initial Load
@@ -51,24 +57,11 @@ document.addEventListener("DOMContentLoaded", () => {
 // ================= NAVIGATION SYSTEM =================
 function initNavigation() {
     const navItems = document.querySelectorAll(".phone-footer-nav .nav-item");
-    const screens = document.querySelectorAll(".mobile-screen");
     
     navItems.forEach(item => {
         item.addEventListener("click", () => {
             const targetScreen = item.getAttribute("data-target");
-            
-            navItems.forEach(nav => nav.classList.remove("active"));
-            screens.forEach(scr => scr.classList.remove("active"));
-            
-            item.classList.add("active");
-            document.getElementById(targetScreen).classList.add("active");
-            
-            // Map tab adjustment (Leaflet requires invalidating size when unhidden)
-            if (targetScreen === "screen-map" && maps.mobileFullMap) {
-                setTimeout(() => {
-                    maps.mobileFullMap.invalidateSize();
-                }, 100);
-            }
+            navigateToScreen(targetScreen);
         });
     });
 
@@ -119,6 +112,13 @@ function navigateToScreen(screenId) {
         setTimeout(() => {
             maps.mobileFullMap.invalidateSize();
         }, 100);
+    } else if (screenId === "screen-report" && maps.miniMap) {
+        setTimeout(() => {
+            maps.miniMap.invalidateSize();
+            if (currentMapMarker) {
+                maps.miniMap.setView(currentMapMarker.getLatLng(), 14);
+            }
+        }, 100);
     }
 }
 
@@ -132,7 +132,21 @@ function initMaps() {
         attribution: '&copy; OpenStreetMap'
     }).addTo(maps.miniMap);
     
-    currentMapMarker = L.marker(centerLatLng, { draggable: true }).addTo(maps.miniMap);
+    // Premium Crosshair pin icon for report picking
+    const reportIcon = L.divIcon({
+        html: `
+            <div class="map-marker-pin" style="background-color: #ef4444;">
+                <i class="fa-solid fa-crosshairs"></i>
+                <div class="pin-pulse" style="background-color: #ef4444;"></div>
+            </div>
+        `,
+        className: "custom-map-pin-container",
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30]
+    });
+    
+    currentMapMarker = L.marker(centerLatLng, { draggable: true, icon: reportIcon }).addTo(maps.miniMap);
     
     currentMapMarker.on("dragend", (e) => {
         const position = currentMapMarker.getLatLng();
@@ -158,6 +172,69 @@ function initMaps() {
 function updateFormLatLng(lat, lng) {
     document.getElementById("val-lat").textContent = lat.toFixed(5);
     document.getElementById("val-lng").textContent = lng.toFixed(5);
+}
+
+// ================= MAP FILTERS & INTERACTIVITY =================
+function initMapFilters() {
+    // 1. Mobile map filter chips
+    const chips = document.querySelectorAll(".map-filter-chip");
+    chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+            chips.forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            activeMobileMapFilter = chip.getAttribute("data-type");
+            plotMapMarkers();
+        });
+    });
+
+    // 2. Dashboard legend filtering
+    const legendItems = document.querySelectorAll(".legend-item");
+    legendItems.forEach(item => {
+        item.addEventListener("click", () => {
+            legendItems.forEach(li => li.classList.remove("active"));
+            item.classList.add("active");
+            activeDashboardMapFilter = item.getAttribute("data-dept");
+            plotMapMarkers();
+        });
+    });
+}
+
+// Deep link: Pan and focus on Mobile Map
+function focusComplaintOnMobileMap(ticketId) {
+    const c = complaints.find(item => item.id === ticketId);
+    if (!c) return;
+    
+    navigateToScreen("screen-map");
+    
+    setTimeout(() => {
+        if (maps.mobileFullMap) {
+            const marker = markers.mobile.find(m => m.ticketId === ticketId);
+            if (marker) {
+                maps.mobileFullMap.setView([c.latitude, c.longitude], 15);
+                marker.openPopup();
+            }
+        }
+    }, 200);
+}
+
+// Deep link: Pan and focus on Dashboard Map
+function focusComplaintOnDashboardMap(ticketId) {
+    const c = complaints.find(item => item.id === ticketId);
+    if (!c) return;
+    
+    if (maps.dashboardMap) {
+        const marker = markers.dashboard.find(m => m.ticketId === ticketId);
+        if (marker) {
+            maps.dashboardMap.setView([c.latitude, c.longitude], 15);
+            marker.openPopup();
+            
+            // Scroll to dashboard map panel smoothly
+            const mapPanel = document.querySelector(".dashboard-split-workspace");
+            if (mapPanel) {
+                mapPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+    }
 }
 
 // ================= DATA SYNCING =================
@@ -247,6 +324,8 @@ function renderComplaintsList() {
         
         const item = document.createElement("div");
         item.className = "activity-item";
+        item.style.cursor = "pointer";
+        item.title = "View on Map";
         item.innerHTML = `
             <div class="activity-icon-box ${cardClass}">
                 <i class="${icon}"></i>
@@ -257,6 +336,9 @@ function renderComplaintsList() {
             </div>
             <span class="status-badge-small ${statusClass}">${c.status}</span>
         `;
+        item.addEventListener("click", () => {
+            focusComplaintOnMobileMap(c.id);
+        });
         homeList.appendChild(item);
     });
 
@@ -276,6 +358,8 @@ function renderComplaintsList() {
         
         const item = document.createElement("div");
         item.className = "activity-item";
+        item.style.cursor = "pointer";
+        item.title = "View on Map";
         item.innerHTML = `
             <div class="activity-icon-box ${cardClass}">
                 <i class="${icon}"></i>
@@ -289,6 +373,9 @@ function renderComplaintsList() {
             </div>
             <span class="status-badge-small ${statusClass}">${c.status}</span>
         `;
+        item.addEventListener("click", () => {
+            focusComplaintOnMobileMap(c.id);
+        });
         myList.appendChild(item);
     });
 }
@@ -327,9 +414,9 @@ function renderComplaintsTable() {
                 <div style="font-weight:600; color:#fff;">${c.issue_type}</div>
                 <div class="desc-cell" title="${c.description}">${c.description}</div>
             </td>
-            <td>
-                <div class="location-cell">${c.description.split("near").slice(1).join("").trim() || "Local Area"}</div>
-                <div class="location-coords">${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}</div>
+            <td style="cursor:pointer;" onclick="focusComplaintOnDashboardMap(${c.id})" title="Click to view on GIS Map">
+                <div class="location-cell" style="color:#60a5fa; text-decoration:underline; font-weight:500;">${c.description.split("near").slice(1).join("").trim() || "Local Area"}</div>
+                <div class="location-coords" style="color:#94a3b8;"><i class="fa-solid fa-location-dot" style="margin-right:2px; font-size:0.65rem;"></i>${c.latitude.toFixed(4)}, ${c.longitude.toFixed(4)}</div>
             </td>
             <td>
                 <span class="severity-pill ${severityClass}">${c.severity}</span>
@@ -357,42 +444,77 @@ function renderComplaintsTable() {
 
 function plotMapMarkers() {
     // Clear old markers
-    markers.mobile.forEach(m => maps.mobileFullMap.removeLayer(m));
-    markers.dashboard.forEach(m => maps.dashboardMap.removeLayer(m));
+    markers.mobile.forEach(m => {
+        if (maps.mobileFullMap) maps.mobileFullMap.removeLayer(m);
+    });
+    markers.dashboard.forEach(m => {
+        if (maps.dashboardMap) maps.dashboardMap.removeLayer(m);
+    });
     markers.mobile = [];
     markers.dashboard = [];
     
     complaints.forEach(c => {
         const color = getDeptColor(c.department);
+        const iconClass = getIssueIcon(c.issue_type);
+        const isCritical = c.severity === "Critical" || c.severity === "High";
+        const pulseHtml = isCritical ? `<div class="pin-pulse" style="background-color: ${color};"></div>` : "";
         
-        // Leaflet custom div icon (color pin)
+        // Premium Teardrop pin shape containing the category icon
+        const pinHtml = `
+            <div class="map-marker-pin" style="background-color: ${color};">
+                <i class="${iconClass}"></i>
+                ${pulseHtml}
+            </div>
+        `;
+        
         const customIcon = L.divIcon({
-            html: `<div style="background-color:${color}; width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 6px ${color};"></div>`,
-            className: "custom-map-pin"
+            html: pinHtml,
+            className: "custom-map-pin-container",
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
         });
         
-        // 1. Mobile full map
-        const mMobile = L.marker([c.latitude, c.longitude], { icon: customIcon })
-            .bindPopup(`<strong>${c.issue_type}</strong><br>${c.description}<br>Status: <strong>${c.status}</strong>`)
-            .addTo(maps.mobileFullMap);
-        markers.mobile.push(mMobile);
+        // 1. Mobile full map (apply filter)
+        const matchesMobileFilter = activeMobileMapFilter === "All" || c.issue_type === activeMobileMapFilter;
+        if (matchesMobileFilter && maps.mobileFullMap) {
+            const mMobile = L.marker([c.latitude, c.longitude], { icon: customIcon })
+                .bindPopup(`<strong>${c.issue_type}</strong><br>${c.description}<br>Status: <strong>${c.status}</strong>`)
+                .addTo(maps.mobileFullMap);
+            mMobile.ticketId = c.id;
+            markers.mobile.push(mMobile);
+        }
         
-        // 2. Dashboard map
-        const mDashboard = L.marker([c.latitude, c.longitude], { icon: customIcon })
-            .bindPopup(`
-                <div style="color:#1e293b; font-family:sans-serif; width:180px;">
-                    <strong style="color:#1e3a8a;">#CIV-${c.id}: ${c.issue_type}</strong><br>
-                    <span style="font-size:0.75rem;">${c.description}</span><br>
-                    <div style="margin-top:6px; display:flex; justify-content:space-between; font-size:0.7rem;">
-                        <span>Status: <strong>${c.status}</strong></span>
-                        <span>Dept: <strong>${c.department}</strong></span>
+        // 2. Dashboard map (apply filter)
+        const matchesDashboardFilter = activeDashboardMapFilter === "All" || c.department === activeDashboardMapFilter;
+        if (matchesDashboardFilter && maps.dashboardMap) {
+            const mDashboard = L.marker([c.latitude, c.longitude], { icon: customIcon })
+                .bindPopup(`
+                    <div style="color:#1e293b; font-family:sans-serif; width:180px;">
+                        <strong style="color:#1e3a8a;">#CIV-${c.id}: ${c.issue_type}</strong><br>
+                        <span style="font-size:0.75rem;">${c.description}</span><br>
+                        <div style="margin-top:6px; display:flex; justify-content:space-between; font-size:0.7rem;">
+                            <span>Status: <strong>${c.status}</strong></span>
+                            <span>Dept: <strong>${c.department}</strong></span>
+                        </div>
+                        <button style="width:100%; margin-top:8px; background:#2563eb; color:#fff; border:none; padding:4px; border-radius:4px; font-size:0.7rem; cursor:pointer;" onclick="openTicketDetailModal(${c.id})">Audit Ticket</button>
                     </div>
-                    <button style="width:100%; margin-top:8px; background:#2563eb; color:#fff; border:none; padding:4px; border-radius:4px; font-size:0.7rem; cursor:pointer;" onclick="openTicketDetailModal(${c.id})">Audit Ticket</button>
-                </div>
-            `)
-            .addTo(maps.dashboardMap);
-        markers.dashboard.push(mDashboard);
+                `)
+                .addTo(maps.dashboardMap);
+            mDashboard.ticketId = c.id;
+            markers.dashboard.push(mDashboard);
+        }
     });
+
+    // Auto-fit bounds on maps to fit all visible complaints dynamically
+    if (markers.mobile.length > 0 && maps.mobileFullMap) {
+        const group = new L.featureGroup(markers.mobile);
+        maps.mobileFullMap.fitBounds(group.getBounds().pad(0.15), { maxZoom: 14 });
+    }
+    if (markers.dashboard.length > 0 && maps.dashboardMap) {
+        const group = new L.featureGroup(markers.dashboard);
+        maps.dashboardMap.fitBounds(group.getBounds().pad(0.15), { maxZoom: 14 });
+    }
 }
 
 async function fetchAnalytics() {

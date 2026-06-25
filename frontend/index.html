@@ -238,6 +238,13 @@
                                     <button class="back-btn" id="btn-map-back"><i class="fa-solid fa-arrow-left"></i></button>
                                     <h3>Nearby Grievances</h3>
                                 </div>
+                                <div class="mobile-map-filters" id="mobile-map-filters" style="display: flex; gap: 6px; overflow-x: auto; padding: 5px 0 10px; margin-bottom: 5px; -ms-overflow-style: none; scrollbar-width: none;">
+                                    <button class="map-filter-chip active" data-type="All"><i class="fa-solid fa-layer-group"></i> All</button>
+                                    <button class="map-filter-chip" data-type="Pothole"><i class="fa-solid fa-road-barrier"></i> Pothole</button>
+                                    <button class="map-filter-chip" data-type="Garbage"><i class="fa-solid fa-trash-can"></i> Garbage</button>
+                                    <button class="map-filter-chip" data-type="Broken Streetlight"><i class="fa-solid fa-lightbulb"></i> Light</button>
+                                    <button class="map-filter-chip" data-type="Water Leakage"><i class="fa-solid fa-faucet-drip"></i> Water</button>
+                                </div>
                                 <div id="mobile-full-map" class="mobile-map-body"></div>
                             </div>
 
@@ -378,11 +385,12 @@
                 <div class="dashboard-panel map-panel">
                     <div class="panel-header">
                         <h4><i class="fa-solid fa-earth-americas"></i> City GIS Hotspot Map</h4>
-                        <div class="map-legends">
-                            <span class="legend"><span class="legend-dot pwd"></span> PWD</span>
-                            <span class="legend"><span class="legend-dot sanitation"></span> Sanitation</span>
-                            <span class="legend"><span class="legend-dot electrical"></span> Electrical</span>
-                            <span class="legend"><span class="legend-dot water"></span> Water</span>
+                        <div class="map-legends" id="dashboard-map-legends">
+                            <span class="legend-item active" data-dept="All"><span class="legend-dot" style="background-color:#94a3b8; border:1px solid #fff;"></span> All</span>
+                            <span class="legend-item" data-dept="PWD"><span class="legend-dot pwd"></span> PWD</span>
+                            <span class="legend-item" data-dept="Sanitation"><span class="legend-dot sanitation"></span> Sanitation</span>
+                            <span class="legend-item" data-dept="Electrical"><span class="legend-dot electrical"></span> Electrical</span>
+                            <span class="legend-item" data-dept="Water Department"><span class="legend-dot water"></span> Water</span>
                         </div>
                     </div>
                     <div id="dashboard-gis-map" class="dashboard-map-container"></div>
